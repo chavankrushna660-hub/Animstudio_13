@@ -106,6 +106,70 @@ export function getSavedAnimationsQuotaStatus(email: string): { count: number; m
 }
 
 /**
+ * Checks if the canvas project has any actual drawings, objects, shapes, strokes, images, or frame contents available.
+ */
+export function isCanvasContentAvailable(data: {
+  objects?: { [id: string]: VectorObject } | null;
+  frames?: Frame[] | null;
+  bones?: Bone[] | null;
+}): boolean {
+  if (!data) return false;
+
+  // 1. Check if there are objects with points or images or valid types
+  if (data.objects && typeof data.objects === 'object') {
+    const objectList = Object.values(data.objects);
+    const hasValidObject = objectList.some(obj => {
+      if (!obj) return false;
+      // If stroke or shape with points
+      if (obj.points && Array.isArray(obj.points) && obj.points.length > 0) return true;
+      // If subPaths present
+      if (obj.subPaths && Array.isArray(obj.subPaths) && obj.subPaths.some(sp => Array.isArray(sp) && sp.length > 0)) return true;
+      // If image object with url
+      if (obj.type === 'image' && obj.imageUrl && obj.imageUrl.length > 0) return true;
+      // If text object with text content
+      if (obj.type === 'text' && obj.text && obj.text.trim().length > 0) return true;
+      // If 3D mesh object with vertices or transform
+      if (obj.type === '3d' || obj.type === '360_container') return true;
+      if (obj.vertices3D && obj.vertices3D.length > 0) return true;
+      if (obj.views360 && obj.views360.length > 0) return true;
+      return false;
+    });
+
+    if (hasValidObject) return true;
+  }
+
+  // 2. Check frames for frame-specific drawing objects
+  if (data.frames && Array.isArray(data.frames)) {
+    const hasValidFrameContent = data.frames.some(frame => {
+      if (!frame) return false;
+      if (frame.objects && typeof frame.objects === 'object') {
+        const frameObjects = Object.values(frame.objects);
+        return frameObjects.some(obj => {
+          if (!obj) return false;
+          if (obj.points && Array.isArray(obj.points) && obj.points.length > 0) return true;
+          if (obj.subPaths && Array.isArray(obj.subPaths) && obj.subPaths.some(sp => Array.isArray(sp) && sp.length > 0)) return true;
+          if (obj.type === 'image' && obj.imageUrl && obj.imageUrl.length > 0) return true;
+          if (obj.type === 'text' && obj.text && obj.text.trim().length > 0) return true;
+          if (obj.type === '3d' || obj.type === '360_container') return true;
+          if (obj.vertices3D && obj.vertices3D.length > 0) return true;
+          return false;
+        });
+      }
+      return false;
+    });
+
+    if (hasValidFrameContent) return true;
+  }
+
+  // 3. Check bones
+  if (data.bones && Array.isArray(data.bones) && data.bones.length > 0) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Saves a new animation record into the 10-quota database.
  */
 export function saveUserAnimationToQuotaDb(
@@ -121,6 +185,14 @@ export function saveUserAnimationToQuotaDb(
   }
 ): { success: boolean; record?: SavedAnimationRecord; error?: string } {
   try {
+    // Check if canvas has any artwork/content before proceeding
+    if (!isCanvasContentAvailable(data)) {
+      return {
+        success: false,
+        error: 'Cannot save: Canvas is empty! Draw or create an object on the canvas first before saving.',
+      };
+    }
+
     const normalizedEmail = (email || 'guest').trim().toLowerCase();
     const quota = getSavedAnimationsQuotaStatus(normalizedEmail);
 

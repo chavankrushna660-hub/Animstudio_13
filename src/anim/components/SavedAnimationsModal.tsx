@@ -22,7 +22,8 @@ import {
   getAllUserSavedAnimations, 
   getSavedAnimationsQuotaStatus, 
   saveUserAnimationToQuotaDb, 
-  deleteSavedAnimationById 
+  deleteSavedAnimationById,
+  isCanvasContentAvailable
 } from '../utils/database';
 import { Frame, VectorObject, Bone, Layer } from '../types';
 
@@ -81,6 +82,15 @@ export default function SavedAnimationsModal({
     e.preventDefault();
     setErrorMessage(null);
 
+    if (!isCanvasContentAvailable(currentProjectData)) {
+      const emptyMsg = 'Cannot save: Canvas is empty! Draw or create an object on the canvas first before saving.';
+      setErrorMessage(emptyMsg);
+      if (onNotification) {
+        onNotification({ type: 'error', message: emptyMsg });
+      }
+      return;
+    }
+
     const res = saveUserAnimationToQuotaDb(email, projectTitle, currentProjectData);
 
     if (!res.success) {
@@ -116,6 +126,15 @@ export default function SavedAnimationsModal({
 
   const handleExportProject = () => {
     try {
+      if (!isCanvasContentAvailable(currentProjectData)) {
+        const emptyMsg = 'Cannot export: Canvas is empty! Please draw or place an object on the canvas first.';
+        setErrorMessage(emptyMsg);
+        if (onNotification) {
+          onNotification({ type: 'error', message: emptyMsg });
+        }
+        return;
+      }
+
       const exportData = {
         version: '2.0',
         title: projectTitle || 'AnimStudio_Project',

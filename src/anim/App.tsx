@@ -49,7 +49,8 @@ import {
   getUserAnimation, 
   deleteUserAnimation, 
   SavedAnimationRecord,
-  getSavedAnimationsQuotaStatus
+  getSavedAnimationsQuotaStatus,
+  isCanvasContentAvailable
 } from './utils/database';
 import { 
   generate3DGeometry, 
@@ -3117,6 +3118,18 @@ export default function App() {
 
   // Video Export recorder
   const startRecording = () => {
+    // Prevent recording if no drawing or object is available on the canvas
+    const hasCanvasContent = isCanvasContentAvailable({
+      objects,
+      frames,
+      bones
+    });
+
+    if (!hasCanvasContent) {
+      setLimitNotification("Cannot record: Canvas is empty! Draw or create an object on the canvas first before recording.");
+      return;
+    }
+
     const canvas = (document.getElementById('front-vector-canvas') as HTMLCanvasElement) || (document.querySelector('canvas') as HTMLCanvasElement);
     if (!canvas) {
       alert("Canvas element not found for video export.");
