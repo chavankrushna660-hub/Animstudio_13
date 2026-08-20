@@ -3196,8 +3196,9 @@ export default function App() {
           return;
         }
 
-        const mimeType = options.mimeType || 'video/mp4';
-        const blob = new Blob(chunks, { type: mimeType });
+        const fullMimeType = options.mimeType || (extension === 'mp4' ? 'video/mp4' : 'video/webm');
+        const cleanMimeType = fullMimeType.split(';')[0].trim() || (extension === 'mp4' ? 'video/mp4' : 'video/webm');
+        const blob = new Blob(chunks, { type: fullMimeType });
         const fileName = `AnimStudio_Export_${Date.now()}.${extension}`;
 
         // 1. Try Native Device File System Access API (showSaveFilePicker)
@@ -3206,8 +3207,8 @@ export default function App() {
             const handle = await (window as any).showSaveFilePicker({
               suggestedName: fileName,
               types: [{
-                description: 'Animation Video File',
-                accept: { [mimeType]: [`.${extension}`] }
+                description: extension === 'mp4' ? 'MP4 Animation Video' : 'WebM Animation Video',
+                accept: { [cleanMimeType]: [`.${extension}`] }
               }]
             });
             const writable = await handle.createWritable();
