@@ -11949,162 +11949,215 @@ export default function CanvasArea({
       {showCanvasSizePanel && (
         <div 
           id="canvas-size-modal-overlay" 
-          className="fixed inset-0 bg-neutral-950/80 backdrop-blur-sm flex items-center justify-center z-[100] pointer-events-auto animate-fade-in"
+          className="fixed inset-0 bg-neutral-950/85 backdrop-blur-md flex items-center justify-center z-[100] p-4 sm:p-8 pointer-events-auto animate-fade-in"
         >
           <div 
-            className="bg-neutral-900 border border-neutral-800 p-6 rounded-3xl shadow-2xl w-full max-w-sm flex flex-col gap-5 text-white animate-scale-up"
+            className="bg-neutral-900 border border-neutral-800 p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-4xl flex flex-col gap-6 text-white animate-scale-up max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] text-amber-500 font-extrabold tracking-widest uppercase">Canvas Setup</span>
-              <h3 className="text-base font-black uppercase tracking-wider text-neutral-100">Adjust Stage Resolution</h3>
-              <p className="text-[11px] text-neutral-400 font-semibold leading-relaxed">
-                Resize the active drawing sheet. The canvas in the background will adapt instantly to your changes.
-              </p>
+            <div className="flex items-start justify-between border-b border-neutral-800/80 pb-5">
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-400 font-black tracking-widest uppercase">
+                    Stage Settings
+                  </span>
+                  <span className="text-xs text-neutral-400 font-mono">Workspace Resolution</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black uppercase tracking-wide text-neutral-100">
+                  Adjust Canvas Stage Resolution
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 font-medium leading-relaxed max-w-2xl">
+                  Resize the active animation sheet to fit your project requirements. Select an industry preset or enter custom pixel dimensions.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCanvasSizePanel(false);
+                  setTimeout(recenterCanvas, 0);
+                }}
+                className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-white bg-neutral-800/80 hover:bg-neutral-800 rounded-2xl transition-all cursor-pointer font-black text-sm shrink-0"
+              >
+                ✕
+              </button>
             </div>
 
-            {/* Live Size Badge */}
-            <div className="bg-neutral-950 px-4 py-2 rounded-2xl border border-neutral-800 flex items-center justify-between font-mono">
-              <span className="text-[10px] uppercase font-black text-neutral-500">Active Resolution</span>
-              <span className="text-xs font-bold text-amber-400">{artboardW} × {artboardH} px</span>
+            {/* Live Size & Aspect Ratio Badge */}
+            <div className="bg-neutral-950 px-6 py-4 rounded-2xl border border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 font-mono">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-amber-400 animate-pulse" />
+                <span className="text-xs uppercase font-black text-neutral-400">Current Active Dimensions:</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-base sm:text-lg font-black text-amber-400">{artboardW} × {artboardH} px</span>
+                <span className="px-2.5 py-0.5 rounded-lg bg-neutral-800 text-neutral-300 text-xs font-bold">
+                  {((artboardW / (artboardH || 1)).toFixed(2))}:1 ({((artboardW * artboardH) / 1000000).toFixed(1)} MP)
+                </span>
+              </div>
             </div>
 
             {/* Presets Grid */}
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[9px] text-neutral-400 uppercase font-black tracking-wide">Presets</span>
-              <div className="grid grid-cols-2 gap-1.5">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-neutral-400 uppercase font-black tracking-wider">Standard Production Presets</span>
+                <span className="text-[11px] text-neutral-500">Click to instantly populate dimensions</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {[
-                  { label: 'HD Stage', w: 1280, h: 720 },
-                  { label: 'Full HD', w: 1920, h: 1080 },
-                  { label: 'Square Post', w: 1080, h: 1080 },
-                  { label: 'Standard', w: 1400, h: 900 }
-                ].map((p) => (
-                  <button
-                    key={p.label}
-                    type="button"
-                    onClick={() => {
-                      setArtboardW(p.w);
-                      setArtboardH(p.h);
-                      setTempArtboardW(p.w.toString());
-                      setTempArtboardH(p.h.toString());
-                    }}
-                    className={`px-2.5 py-1.5 rounded-xl border text-[10px] font-black uppercase text-left transition-all cursor-pointer ${
-                      artboardW === p.w && artboardH === p.h
-                        ? 'bg-amber-500/10 border-amber-500/50 text-amber-400'
-                        : 'bg-neutral-850 hover:bg-neutral-800 border-neutral-800 text-neutral-400 hover:text-white'
-                    }`}
-                  >
-                    <div>{p.label}</div>
-                    <div className="text-[9px] text-neutral-500 font-mono mt-0.5">{p.w}x{p.h}px</div>
-                  </button>
-                ))}
+                  { label: 'HD Stage 720p', w: 1280, h: 720, aspect: '16:9 Standard HD', badge: 'YouTube / Video' },
+                  { label: 'Full HD 1080p', w: 1920, h: 1080, aspect: '16:9 Crisp FHD', badge: 'Broadcast' },
+                  { label: 'Standard Ultra', w: 1400, h: 900, aspect: '16:10 Studio Canvas', badge: 'Laptop Fit' },
+                  { label: 'Square Post', w: 1080, h: 1080, aspect: '1:1 Square', badge: 'Instagram / Feed' },
+                  { label: 'Mobile Story / Reel', w: 1080, h: 1920, aspect: '9:16 Vertical', badge: 'TikTok / Shorts' },
+                  { label: 'Ultra 4K Stage', w: 3840, h: 2160, aspect: '16:9 Ultra HD', badge: 'Cinema 4K' }
+                ].map((p) => {
+                  const isSelected = artboardW === p.w && artboardH === p.h;
+                  return (
+                    <button
+                      key={p.label}
+                      type="button"
+                      onClick={() => {
+                        setArtboardW(p.w);
+                        setArtboardH(p.h);
+                        setTempArtboardW(p.w.toString());
+                        setTempArtboardH(p.h.toString());
+                      }}
+                      className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
+                        isSelected
+                          ? 'bg-amber-500/10 border-amber-500/60 shadow-lg shadow-amber-500/10 text-white'
+                          : 'bg-neutral-950/60 hover:bg-neutral-850 border-neutral-800/80 text-neutral-300 hover:border-neutral-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs font-black uppercase tracking-wide ${isSelected ? 'text-amber-400' : 'text-neutral-200'}`}>
+                          {p.label}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-neutral-800/80 text-neutral-400 font-mono">
+                          {p.badge}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs font-mono">
+                        <span className="font-black text-amber-300">{p.w} × {p.h} px</span>
+                        <span className="text-[11px] text-neutral-500">{p.aspect}</span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Inputs Grid */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Width */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-[9px] text-neutral-400 uppercase font-black tracking-wide">Width (px)</span>
-                <div className="flex items-center bg-neutral-950 border border-neutral-800 rounded-xl overflow-hidden h-9">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const current = parseInt(tempArtboardW) || artboardW;
-                      const next = Math.max(100, current - 100);
-                      setTempArtboardW(next.toString());
-                      setArtboardW(next);
-                    }}
-                    className="w-8 h-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors font-bold text-xs shrink-0 cursor-pointer"
-                  >
-                    -
-                  </button>
-                  <input
-                    type="text"
-                    value={tempArtboardW}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/[^0-9]/g, '');
-                      setTempArtboardW(val);
-                      const parsed = parseInt(val);
-                      if (!isNaN(parsed) && parsed >= 100 && parsed <= 10000) {
-                        setArtboardW(parsed);
-                      }
-                    }}
-                    className="w-full h-full bg-transparent text-center text-xs font-mono font-bold focus:outline-none text-amber-400"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const current = parseInt(tempArtboardW) || artboardW;
-                      const next = Math.min(10000, current + 100);
-                      setTempArtboardW(next.toString());
-                      setArtboardW(next);
-                    }}
-                    className="w-8 h-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors font-bold text-xs shrink-0 cursor-pointer"
-                  >
-                    +
-                  </button>
+            {/* Custom Pixel Inputs Grid */}
+            <div className="flex flex-col gap-3">
+              <span className="text-xs text-neutral-400 uppercase font-black tracking-wider">Custom Resolution Controls</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Width */}
+                <div className="flex flex-col gap-2 bg-neutral-950/70 p-4 rounded-2xl border border-neutral-800">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-neutral-300 uppercase font-black tracking-wide">Width (Pixels)</span>
+                    <span className="text-[10px] text-neutral-500 font-mono">Min 100 — Max 10000</span>
+                  </div>
+                  <div className="flex items-center bg-neutral-900 border border-neutral-800 focus-within:border-amber-500 rounded-xl overflow-hidden h-13">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = parseInt(tempArtboardW) || artboardW;
+                        const next = Math.max(100, current - 100);
+                        setTempArtboardW(next.toString());
+                        setArtboardW(next);
+                      }}
+                      className="w-12 h-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors font-black text-base shrink-0 cursor-pointer flex items-center justify-center"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="text"
+                      value={tempArtboardW}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        setTempArtboardW(val);
+                        const parsed = parseInt(val);
+                        if (!isNaN(parsed) && parsed >= 100 && parsed <= 10000) {
+                          setArtboardW(parsed);
+                        }
+                      }}
+                      className="w-full h-full bg-transparent text-center text-base font-mono font-black focus:outline-none text-amber-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = parseInt(tempArtboardW) || artboardW;
+                        const next = Math.min(10000, current + 100);
+                        setTempArtboardW(next.toString());
+                        setArtboardW(next);
+                      }}
+                      className="w-12 h-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors font-black text-base shrink-0 cursor-pointer flex items-center justify-center"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Height */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-[9px] text-neutral-400 uppercase font-black tracking-wide">Height (px)</span>
-                <div className="flex items-center bg-neutral-950 border border-neutral-800 rounded-xl overflow-hidden h-9">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const current = parseInt(tempArtboardH) || artboardH;
-                      const next = Math.max(100, current - 100);
-                      setTempArtboardH(next.toString());
-                      setArtboardH(next);
-                    }}
-                    className="w-8 h-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors font-bold text-xs shrink-0 cursor-pointer"
-                  >
-                    -
-                  </button>
-                  <input
-                    type="text"
-                    value={tempArtboardH}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/[^0-9]/g, '');
-                      setTempArtboardH(val);
-                      const parsed = parseInt(val);
-                      if (!isNaN(parsed) && parsed >= 100 && parsed <= 10000) {
-                        setArtboardH(parsed);
-                      }
-                    }}
-                    className="w-full h-full bg-transparent text-center text-xs font-mono font-bold focus:outline-none text-amber-400"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const current = parseInt(tempArtboardH) || artboardH;
-                      const next = Math.min(10000, current + 100);
-                      setTempArtboardH(next.toString());
-                      setArtboardH(next);
-                    }}
-                    className="w-8 h-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors font-bold text-xs shrink-0 cursor-pointer"
-                  >
-                    +
-                  </button>
+                {/* Height */}
+                <div className="flex flex-col gap-2 bg-neutral-950/70 p-4 rounded-2xl border border-neutral-800">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-neutral-300 uppercase font-black tracking-wide">Height (Pixels)</span>
+                    <span className="text-[10px] text-neutral-500 font-mono">Min 100 — Max 10000</span>
+                  </div>
+                  <div className="flex items-center bg-neutral-900 border border-neutral-800 focus-within:border-amber-500 rounded-xl overflow-hidden h-13">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = parseInt(tempArtboardH) || artboardH;
+                        const next = Math.max(100, current - 100);
+                        setTempArtboardH(next.toString());
+                        setArtboardH(next);
+                      }}
+                      className="w-12 h-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors font-black text-base shrink-0 cursor-pointer flex items-center justify-center"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="text"
+                      value={tempArtboardH}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        setTempArtboardH(val);
+                        const parsed = parseInt(val);
+                        if (!isNaN(parsed) && parsed >= 100 && parsed <= 10000) {
+                          setArtboardH(parsed);
+                        }
+                      }}
+                      className="w-full h-full bg-transparent text-center text-base font-mono font-black focus:outline-none text-amber-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = parseInt(tempArtboardH) || artboardH;
+                        const next = Math.min(10000, current + 100);
+                        setTempArtboardH(next.toString());
+                        setArtboardH(next);
+                      }}
+                      className="w-12 h-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors font-black text-base shrink-0 cursor-pointer flex items-center justify-center"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2 mt-2">
+            <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-neutral-800">
               <button
                 type="button"
                 onClick={() => {
                   setShowCanvasSizePanel(false);
-                  // Trigger a fit/center
                   setTimeout(recenterCanvas, 0);
                 }}
-                className="flex-1 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors cursor-pointer text-center"
+                className="flex-1 h-13 bg-neutral-800 hover:bg-neutral-750 text-neutral-200 font-black text-xs uppercase tracking-wider rounded-2xl transition-all cursor-pointer text-center flex items-center justify-center"
               >
-                Close
+                Close & Cancel
               </button>
               <button
                 type="button"
@@ -12128,9 +12181,9 @@ export default function CanvasArea({
                     setZoomOffset({ x: offsetX, y: offsetY });
                   }, 0);
                 }}
-                className="flex-1 py-2 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 text-neutral-950 font-black text-xs rounded-xl uppercase tracking-wider transition-all cursor-pointer shadow-md text-center"
+                className="flex-1 sm:flex-2 h-13 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-neutral-950 font-black text-xs uppercase tracking-wider rounded-2xl transition-all cursor-pointer shadow-lg shadow-amber-500/15 text-center flex items-center justify-center"
               >
-                Apply & Fit
+                Apply & Fit Stage Resolution
               </button>
             </div>
           </div>

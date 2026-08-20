@@ -722,52 +722,6 @@ export default function App() {
     }, 1800);
   };
 
-  // Trigger active tool HUD shortcut hint whenever activeTool changes
-  useEffect(() => {
-    const toolHints: { [key: string]: string } = {
-      SEL: 'Selection Tool: Click drawing to select, drag to move / scale / rotate',
-      BRS: 'Brush Tool: Click & drag on canvas to draw strokes',
-      SHP: 'Shape Tool: Click or drag on canvas to create shape',
-      PEN: 'Vector Pen: Click points on canvas to create bezier curve path',
-      ERS: 'Eraser Tool: Click or drag across strokes to erase',
-      FIL: 'Fill Bucket: Click inside a shape or stroke to fill color',
-      PVT: 'Pivot Tool: Click on selected object to add transform pivot point',
-      KNF: 'Knife Tool: Drag across drawing to cut into parts',
-      PIN: 'Real Puppet Warp: Place and drag pins to deform PNG images & drawings smoothly',
-      VST: 'Vector Smart Transform (VST): Draw area to transform isolated part; all other pixels stay strictly frozen!',
-      SCT: 'Smart Correct Tool: Click & drag to expand, decrease or move shape contours with precision point radius',
-      VLB: 'Vector Line Brush: Draws real-time perfectly straight vector lines without jitter or broken strokes',
-      LSO: 'Lasso Tool: Draw loop around area to select or fill',
-      FSL: 'Free Selection: Draw loop around area',
-      VEX: 'Vector Isolator: Select part to isolate as a separate layer',
-      PSE: 'Pose Studio: Animate mouth, eye blink, pupil & 3D pose',
-      '360': '360° Studio: Pseudo-3D multi-angle rotation builder',
-      WSC: '3D Wire Sculpt: Convert 2D strokes to 3D mesh wireframe',
-      MSH: 'Mesh Wrap: Drag mesh points on drawing to deform',
-      SPL: 'Spline Reshape: Adjust spline handles to curve stroke',
-      MCL: 'Smart Mesh Color: Click mesh cells to paint colors',
-      SWP: 'Smart Pin Warp: Click on drawing to add warp pins',
-      CAG: 'Cage Deform: Drag cage handles to warp shape',
-      LQB: 'Liquify Brush: Click & drag on drawing to push, bulge or twist',
-      SPD: 'Direct Stroke Pull: Drag stroke lines directly to pull',
-      SPT: 'Stroke Move: Touch & drag stroke to shift position',
-      S3D: '3D Extruder: Convert 2D stroke into 3D volumetric model',
-      CON: 'Constraints: Connect objects with joint constraints',
-      MOT: 'Motion Path: Attach objects to motion paths',
-      CPT: 'Curve Path: Warp drawing along spine curve lines',
-      VDF: 'Vector Deformer: Place vector nodes and drag to deform',
-      VPR: 'Vector Pen Reshape: Place pen points on stroke to curve lines',
-      PBM: 'Points Movement: Place joint points and drag rigid sections',
-      RPD: 'Rigid Point Deform: Drag rigid points in straight lines',
-      CRV: 'Curve Line Deformer: Bend and attach flex curve overlay',
-      EYE: 'Eyedropper: Click on canvas to sample color',
-      ZOM: 'Zoom & Pan: Pinch to zoom, drag to pan canvas viewport',
-      BON: 'Bone Tool: Drag between pivot joints to link skeletal bones',
-    };
-    const hint = toolHints[activeTool] || `Active Tool: ${activeTool}`;
-    triggerShortcutHint(hint);
-  }, [activeTool]);
-
   // Canvas Size States
   const [artboardW, setArtboardW] = useState<number>(() => {
     if (typeof window !== 'undefined') {
@@ -951,7 +905,6 @@ export default function App() {
         case 'S': {
           e.preventDefault();
           h.setActiveTool('SEL');
-          h.triggerShortcutHint("Tool: Select & Transform (S)");
           break;
         }
         // 'p' for pen
@@ -959,7 +912,6 @@ export default function App() {
         case 'P': {
           e.preventDefault();
           h.setActiveTool('PEN');
-          h.triggerShortcutHint("Tool: Vector Pen (P)");
           break;
         }
         // 'b' for brush
@@ -967,7 +919,6 @@ export default function App() {
         case 'B': {
           e.preventDefault();
           h.setActiveTool('BRS');
-          h.triggerShortcutHint("Tool: Brush (B)");
           break;
         }
         // 'm' for mesh
@@ -975,7 +926,6 @@ export default function App() {
         case 'M': {
           e.preventDefault();
           h.setActiveTool('MSH');
-          h.triggerShortcutHint("Tool: Geometry Deform Mesh (M)");
           break;
         }
         // 'f' for fill
@@ -983,7 +933,6 @@ export default function App() {
         case 'F': {
           e.preventDefault();
           h.setActiveTool('FIL');
-          h.triggerShortcutHint("Tool: Fill Bucket (F)");
           break;
         }
         // 'l' for lasso
@@ -991,7 +940,6 @@ export default function App() {
         case 'L': {
           e.preventDefault();
           h.setActiveTool('LSO');
-          h.triggerShortcutHint("Tool: Lasso Selection (L)");
           break;
         }
         // 'a' for add frame
@@ -1031,7 +979,6 @@ export default function App() {
         case 'E': {
           e.preventDefault();
           h.setActiveTool('ERS');
-          h.triggerShortcutHint("Tool: Eraser (E)");
           break;
         }
         // 'v' for pivot point
@@ -1039,7 +986,6 @@ export default function App() {
         case 'V': {
           e.preventDefault();
           h.setActiveTool('PVT');
-          h.triggerShortcutHint("Tool: Pivot Point (V)");
           break;
         }
         // 'k' for knife
@@ -1047,7 +993,6 @@ export default function App() {
         case 'K': {
           e.preventDefault();
           h.setActiveTool('KNF');
-          h.triggerShortcutHint("Tool: Knife (K)");
           break;
         }
         // 'z' for zoom
@@ -1055,7 +1000,6 @@ export default function App() {
         case 'Z': {
           e.preventDefault();
           h.setActiveTool('ZOM');
-          h.triggerShortcutHint("Tool: Zoom & Pan (Z)");
           break;
         }
         // 'u' for unselecting selected drawing
@@ -4172,78 +4116,84 @@ export default function App() {
       {isAuthModalOpen && (
         <div 
           id="auth-modal-overlay" 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 sm:p-8 animate-fade-in"
         >
-          <div className="w-full max-w-md bg-white border border-neutral-200 rounded-2xl shadow-2xl overflow-hidden text-neutral-800">
+          <div className="w-full max-w-2xl bg-neutral-900 border border-neutral-800 rounded-3xl shadow-2xl overflow-hidden text-neutral-100 flex flex-col max-h-[90vh]">
             {/* Header */}
-            <div className="p-5 border-b border-neutral-100 flex items-center justify-between bg-neutral-50">
-              <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-amber-600" />
-                <h3 className="font-black uppercase tracking-wider text-sm text-neutral-900">Simple Authentication</h3>
+            <div className="p-6 sm:p-7 border-b border-neutral-800 flex items-center justify-between bg-neutral-950/70">
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-400">
+                  <User className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-black uppercase tracking-wider text-base sm:text-lg text-white">Simple Authentication</h3>
+                  <p className="text-xs text-neutral-400 font-medium mt-0.5">Access your private cloud storage and sync animations</p>
+                </div>
               </div>
               <button
                 onClick={() => {
                   setIsAuthModalOpen(false);
                   setAuthError('');
                 }}
-                className="text-neutral-400 hover:text-neutral-700 font-black text-sm p-1.5 hover:bg-neutral-100 rounded-lg transition-all"
+                className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-white bg-neutral-800/80 hover:bg-neutral-800 rounded-2xl transition-all cursor-pointer font-black text-sm"
               >
                 ✕
               </button>
             </div>
 
             {/* Form Body */}
-            <form onSubmit={handleAuthSubmit} className="p-5 space-y-4">
-              <p className="text-xs text-neutral-600 leading-relaxed">
-                Log in with your Gmail address to access your private storage slot. Your saved work will be retained securely for exactly <strong className="text-amber-600 font-bold">1 day (24 hours)</strong> and then auto-deleted.
+            <form onSubmit={handleAuthSubmit} className="p-6 sm:p-8 space-y-6 overflow-y-auto">
+              <p className="text-sm text-neutral-300 leading-relaxed font-medium">
+                Log in with your Gmail address to access your private storage slot. Your saved work will be retained securely for exactly <strong className="text-amber-400 font-bold">1 day (24 hours)</strong> and then auto-deleted.
               </p>
 
               {/* Alert info banner */}
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[10.5px] text-amber-900 leading-relaxed space-y-1">
-                <p className="font-bold flex items-center gap-1.5 text-amber-800 text-xs">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+              <div className="bg-amber-500/10 border border-amber-500/25 rounded-2xl p-4 sm:p-5 text-xs sm:text-sm text-amber-200 leading-relaxed space-y-2">
+                <p className="font-bold flex items-center gap-2 text-amber-300 text-sm">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
                   Simple Credentials Rule:
                 </p>
-                <ul className="list-disc list-inside space-y-0.5 text-neutral-600">
-                  <li>Email must end with <code className="text-amber-800 text-[10px] bg-amber-100 px-1 py-0.5 rounded font-mono font-bold">@gmail.com</code></li>
-                  <li>Password: <code className="text-amber-800 text-[10px] bg-amber-100 px-1 py-0.5 rounded font-mono font-bold">123456</code> or <code className="text-amber-800 text-[10px] bg-amber-100 px-1 py-0.5 rounded font-mono font-bold">password</code></li>
+                <ul className="list-disc list-inside space-y-1 text-neutral-300 text-xs sm:text-sm">
+                  <li>Email must end with <code className="text-amber-300 text-xs bg-amber-950/80 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-bold">@gmail.com</code></li>
+                  <li>Password: <code className="text-amber-300 text-xs bg-amber-950/80 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-bold">123456</code> or <code className="text-amber-300 text-xs bg-amber-950/80 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-bold">password</code></li>
                 </ul>
               </div>
 
               {authError && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-xl p-3 text-xs font-semibold">
-                  ⚠️ {authError}
+                <div className="bg-rose-500/15 border border-rose-500/30 text-rose-300 rounded-2xl p-4 text-xs sm:text-sm font-semibold flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                  <span>{authError}</span>
                 </div>
               )}
 
               {/* Email */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] text-neutral-500 font-black uppercase tracking-wider block">Gmail Address</label>
+              <div className="space-y-2">
+                <label className="text-xs text-neutral-400 font-black uppercase tracking-wider block">Gmail Address</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
+                  <Mail className="absolute left-4 top-4 w-5 h-5 text-neutral-500" />
                   <input
                     type="email"
                     required
                     placeholder="yourname@gmail.com"
                     value={authEmail}
                     onChange={(e) => setAuthEmail(e.target.value)}
-                    className="w-full bg-neutral-50 border border-neutral-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-xl py-2 pl-9 pr-4 text-xs font-medium text-neutral-900 placeholder-neutral-400 outline-none transition-all"
+                    className="w-full h-13 bg-neutral-950 border border-neutral-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30 rounded-2xl pl-12 pr-4 text-sm font-semibold text-white placeholder-neutral-500 outline-none transition-all"
                   />
                 </div>
               </div>
 
               {/* Password */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] text-neutral-500 font-black uppercase tracking-wider block">Password</label>
+              <div className="space-y-2">
+                <label className="text-xs text-neutral-400 font-black uppercase tracking-wider block">Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
+                  <Lock className="absolute left-4 top-4 w-5 h-5 text-neutral-500" />
                   <input
                     type="password"
                     required
                     placeholder="••••••"
                     value={authPassword}
                     onChange={(e) => setAuthPassword(e.target.value)}
-                    className="w-full bg-neutral-50 border border-neutral-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-xl py-2 pl-9 pr-4 text-xs font-medium text-neutral-900 placeholder-neutral-400 outline-none transition-all"
+                    className="w-full h-13 bg-neutral-950 border border-neutral-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30 rounded-2xl pl-12 pr-4 text-sm font-semibold text-white placeholder-neutral-500 outline-none transition-all"
                   />
                 </div>
               </div>
@@ -4251,7 +4201,7 @@ export default function App() {
               {/* Submit */}
               <button
                 type="submit"
-                className="w-full py-2.5 mt-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 text-neutral-950 font-black text-xs text-center transition-all uppercase cursor-pointer shadow-sm shadow-amber-500/10"
+                className="w-full h-13 mt-4 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-neutral-950 font-black text-sm uppercase tracking-wider text-center transition-all cursor-pointer shadow-lg shadow-amber-500/15"
               >
                 Log In & Sync
               </button>

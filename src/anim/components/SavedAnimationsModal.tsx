@@ -172,48 +172,48 @@ export default function SavedAnimationsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-neutral-900 border border-neutral-800 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 sm:p-8 animate-fade-in">
+      <div className="bg-neutral-900 border border-neutral-800 w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[88vh] max-h-[88vh]">
         
         {/* Header */}
-        <div className="p-5 border-b border-neutral-800 flex items-center justify-between bg-neutral-950/60 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
-              <Database className="w-6 h-6" />
+        <div className="p-6 sm:p-7 border-b border-neutral-800 flex items-center justify-between bg-neutral-950/70 shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-400">
+              <Database className="w-7 h-7" />
             </div>
             <div>
-              <h2 className="text-base font-black text-white uppercase tracking-wide flex items-center gap-2">
+              <h2 className="text-lg sm:text-xl font-black text-white uppercase tracking-wider flex items-center gap-2">
                 Saved Animations & Drawings Database
               </h2>
-              <p className="text-xs text-neutral-400 font-medium">
-                Store up to 10 saved animations. Delete items to free up quota.
+              <p className="text-xs sm:text-sm text-neutral-400 font-medium mt-0.5">
+                Store up to 10 full multi-frame animation projects with layers, bones, and meshes.
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition cursor-pointer"
+            className="w-10 h-10 flex items-center justify-center rounded-2xl text-neutral-400 hover:text-white bg-neutral-800/80 hover:bg-neutral-800 transition cursor-pointer font-black text-sm"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Quota Progress Bar */}
-        <div className="px-6 py-3 bg-neutral-950/40 border-b border-neutral-800/60 flex items-center justify-between gap-4 shrink-0">
-          <div className="flex items-center gap-2 text-xs font-bold text-neutral-300">
-            <HardDrive className="w-4 h-4 text-amber-400" />
+        <div className="px-6 sm:px-8 py-4 bg-neutral-950/60 border-b border-neutral-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 shrink-0">
+          <div className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-neutral-200">
+            <HardDrive className="w-4 h-4 text-amber-400 shrink-0" />
             <span>Database Storage Quota:</span>
             <span className={quota.isFull ? 'text-rose-400 font-black' : 'text-amber-400 font-black'}>
               {quota.count} / {quota.max} Saved Animations
             </span>
           </div>
 
-          <div className="flex-1 max-w-xs h-2.5 bg-neutral-800 rounded-full overflow-hidden p-0.5 border border-neutral-700/50">
+          <div className="flex-1 max-w-md h-3.5 bg-neutral-950 rounded-full overflow-hidden p-0.5 border border-neutral-800">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
                 quota.isFull
-                  ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]'
+                  ? 'bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.6)]'
                   : quota.count >= 8
                   ? 'bg-amber-400'
                   : 'bg-emerald-400'
@@ -224,49 +224,49 @@ export default function SavedAnimationsModal({
         </div>
 
         {/* Save Current Workspace Form & Backup File Actions */}
-        <div className="p-5 border-b border-neutral-800 bg-neutral-900/90 shrink-0 space-y-3">
-          <form onSubmit={handleSaveCurrent} className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+        <div className="p-6 sm:p-8 border-b border-neutral-800 bg-neutral-900/95 shrink-0 space-y-4">
+          <form onSubmit={handleSaveCurrent} className="flex flex-col sm:flex-row gap-3 items-stretch">
             <input
               type="text"
               value={projectTitle}
               onChange={(e) => setProjectTitle(e.target.value)}
-              placeholder="Enter animation name..."
-              className="flex-1 bg-neutral-950 border border-neutral-800 focus:border-amber-500 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-neutral-500 font-medium outline-none transition"
+              placeholder="Enter a descriptive title for this animation (e.g., Character Walk Cycle, Explainer Scene)..."
+              className="flex-1 h-13 bg-neutral-950 border border-neutral-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-2xl px-5 text-sm text-white placeholder-neutral-500 font-semibold outline-none transition"
               required
             />
             <button
               type="submit"
               disabled={quota.isFull}
-              className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer shrink-0 ${
+              className={`h-13 px-8 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 transition cursor-pointer shrink-0 ${
                 quota.isFull
                   ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed border border-neutral-700'
-                  : 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-neutral-950 shadow-lg shadow-amber-500/10'
+                  : 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-neutral-950 shadow-lg shadow-amber-500/15'
               }`}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5" />
               Save Animation
             </button>
           </form>
 
           {/* Export / Import File Actions */}
-          <div className="flex items-center justify-between gap-2 pt-1 border-t border-neutral-800/60">
-            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider font-mono">
-              Offline File Backup (.animstudio):
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-neutral-800/80">
+            <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider font-mono">
+              Offline File Backup (.animstudio / .json):
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={handleExportProject}
-                className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-750 text-neutral-200 border border-neutral-700 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition cursor-pointer"
+                className="flex-1 sm:flex-initial h-10 px-4 bg-neutral-800 hover:bg-neutral-750 text-neutral-200 border border-neutral-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
                 title="Download complete project file to your computer/phone"
               >
-                <Download className="w-3.5 h-3.5 text-amber-400" />
-                Download File
+                <Download className="w-4 h-4 text-amber-400" />
+                Export Project File
               </button>
 
-              <label className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-750 text-neutral-200 border border-neutral-700 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition cursor-pointer">
-                <Upload className="w-3.5 h-3.5 text-emerald-400" />
-                Import File
+              <label className="flex-1 sm:flex-initial h-10 px-4 bg-neutral-800 hover:bg-neutral-750 text-neutral-200 border border-neutral-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer">
+                <Upload className="w-4 h-4 text-emerald-400" />
+                Import Project File
                 <input
                   type="file"
                   accept=".animstudio,.json"
@@ -278,87 +278,95 @@ export default function SavedAnimationsModal({
           </div>
 
           {errorMessage && (
-            <div className="mt-3 p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-bold flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="p-4 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs sm:text-sm font-bold flex items-center gap-2.5">
+              <AlertCircle className="w-5 h-5 shrink-0 text-rose-400" />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {quota.isFull && (
-            <div className="mt-2 text-[11px] text-amber-400 font-bold flex items-center gap-1.5">
-              <span>⚠️ Quota Full (10/10 saved animations)! Delete an existing animation below to free up a slot.</span>
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs sm:text-sm text-amber-300 font-bold flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>Quota Full (10/10 saved animations)! Delete an existing animation below to free up a slot.</span>
             </div>
           )}
         </div>
 
         {/* Saved Animations List */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-3 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-4 scrollbar-thin">
           {savedList.length === 0 ? (
-            <div className="py-12 text-center text-neutral-500 space-y-2">
-              <Film className="w-10 h-10 mx-auto text-neutral-600 animate-pulse" />
-              <p className="text-xs font-bold text-neutral-400">No saved animations in database yet</p>
-              <p className="text-[11px]">Save your current canvas project above to store up to 10 animations!</p>
+            <div className="py-20 text-center text-neutral-500 space-y-3">
+              <Film className="w-14 h-14 mx-auto text-neutral-700 animate-pulse" />
+              <p className="text-sm font-bold text-neutral-300">No saved animations in database yet</p>
+              <p className="text-xs text-neutral-500 max-w-sm mx-auto">
+                Save your current canvas project above to store up to 10 full multi-frame animation projects!
+              </p>
             </div>
           ) : (
-            savedList.map((item, idx) => (
-              <div
-                key={item.id}
-                className="bg-neutral-950 border border-neutral-800/80 hover:border-amber-500/40 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition group"
-              >
-                <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 font-mono font-black text-xs">
-                    #{idx + 1}
-                  </div>
+            <div className="grid grid-cols-1 gap-3.5">
+              {savedList.map((item, idx) => (
+                <div
+                  key={item.id}
+                  className="bg-neutral-950/80 border border-neutral-800 hover:border-amber-500/40 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition group"
+                >
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 font-mono font-black text-sm">
+                      #{idx + 1}
+                    </div>
 
-                  <div className="space-y-1 min-w-0 flex-1">
-                    <h3 className="text-xs font-black text-white truncate">{item.title}</h3>
-                    <div className="flex items-center gap-3 text-[10px] text-neutral-400 font-medium">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-neutral-500" />
-                        {new Date(item.savedAt).toLocaleDateString()} {new Date(item.savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                      <span className="flex items-center gap-1 text-amber-400/90 font-mono font-bold">
-                        <Film className="w-3 h-3" />
-                        {item.frames?.length || 1} frames
-                      </span>
-                      <span className="flex items-center gap-1 text-indigo-400 font-mono font-bold">
-                        <Box className="w-3 h-3" />
-                        {Object.keys(item.objects || {}).length} objects
-                      </span>
+                    <div className="space-y-1.5 min-w-0 flex-1">
+                      <h3 className="text-sm sm:text-base font-black text-white truncate">{item.title}</h3>
+                      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-neutral-400 font-medium">
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-neutral-500" />
+                          {new Date(item.savedAt).toLocaleDateString()} at {new Date(item.savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <span className="flex items-center gap-1.5 text-amber-400 font-mono font-bold">
+                          <Film className="w-3.5 h-3.5" />
+                          {item.frames?.length || 1} frames
+                        </span>
+                        <span className="flex items-center gap-1.5 text-indigo-400 font-mono font-bold">
+                          <Box className="w-3.5 h-3.5" />
+                          {Object.keys(item.objects || {}).length} objects
+                        </span>
+                        <span className="flex items-center gap-1.5 text-emerald-400 font-mono font-bold">
+                          {item.fps || 12} FPS
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                  <button
-                    onClick={() => handleLoad(item)}
-                    className="px-3.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-bold text-xs uppercase flex items-center gap-1.5 transition cursor-pointer"
-                  >
-                    <FolderOpen className="w-3.5 h-3.5" />
-                    Load
-                  </button>
+                  <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
+                    <button
+                      onClick={() => handleLoad(item)}
+                      className="h-11 px-5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 font-black text-xs uppercase tracking-wider flex items-center gap-2 transition cursor-pointer"
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                      Load Project
+                    </button>
 
-                  <button
-                    onClick={() => handleDelete(item.id, item.title)}
-                    className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 hover:text-rose-300 transition cursor-pointer"
-                    title="Delete saved animation from database"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                    <button
+                      onClick={() => handleDelete(item.id, item.title)}
+                      className="w-11 h-11 flex items-center justify-center rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-400 hover:text-rose-300 transition cursor-pointer"
+                      title="Delete saved animation from database"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-neutral-800 bg-neutral-950/60 flex items-center justify-between text-[11px] text-neutral-500 font-medium shrink-0">
-          <span>Database Quota: Lifetime daily management (10 saved animation slots).</span>
+        <div className="p-5 sm:p-6 border-t border-neutral-800 bg-neutral-950/70 flex items-center justify-between text-xs text-neutral-400 font-medium shrink-0">
+          <span>Database Quota: 10 lifetime local and account animation slots.</span>
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-bold transition cursor-pointer"
+            className="px-6 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-750 text-neutral-200 font-black uppercase text-xs tracking-wider transition cursor-pointer"
           >
-            Close
+            Close Window
           </button>
         </div>
 
