@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    <!-- Primary Page Title & Meta -->
+    <title>Animstudio</title>
+    <meta name="title" content="Animstudio" />
+    <meta name="description" content="Animstudio is a professional browser-based 2D and 3D animation studio featuring vector drawing, 3D extrusion, timeline keyframing, bone rigging, and deep PNG editing." />
+    <meta name="keywords" content="Animstudio, animation studio, 2D animation, 3D animation, vector drawing, bone rigging, timeline keyframing, browser animation tool" />
+    <meta name="author" content="Animstudio" />
+    <meta name="application-name" content="Animstudio" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Google Search Icons & Launcher Favicons (Multiples of 48px for Search Engine indexing) -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <!-- PWA & Mobile Web App Capabilities -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#DC2626" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Animstudio" />
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Animstudio" />
+    <meta property="og:title" content="Animstudio" />
+    <meta property="og:description" content="Animstudio — Professional 2D & 3D browser animation studio with vector drawing, 3D extrusion, timeline keyframing, and PNG deep editing." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/icon-512.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="Animstudio App Launcher Logo" />
+    <meta property="og:logo" content="/icon-512.png" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Animstudio" />
+    <meta name="twitter:description" content="Animstudio — Professional 2D & 3D browser animation studio with vector drawing, 3D extrusion, timeline keyframing, and PNG deep editing." />
+    <meta name="twitter:image" content="/icon-512.png" />
+    <meta name="twitter:image:alt" content="Animstudio Logo" />
+
+    <!-- Search Engine Structured Data (JSON-LD) for Search Result Logo & App Launcher -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "/#webapp",
+          "name": "Animstudio",
+          "alternateName": "Animstudio",
+          "url": "/",
+          "applicationCategory": "MultimediaApplication",
+          "operatingSystem": "All",
+          "description": "Animstudio — Professional 2D & 3D browser animation studio with vector drawing, 3D extrusion, timeline keyframing, and PNG deep editing.",
+          "image": "/icon-512.png",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "/icon-512.png",
+            "width": 512,
+            "height": 512
+          },
+          "screenshot": "/og-image.png",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "/#organization",
+          "name": "Animstudio",
+          "url": "/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "/icon-512.png",
+            "width": 512,
+            "height": 512,
+            "caption": "Animstudio Logo"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "/#website",
+          "url": "/",
+          "name": "Animstudio",
+          "publisher": {
+            "@id": "/#organization"
+          }
+        }
+      ]
+    }
+    </script>
+  </head>
+  <body class="bg-[#0e1116] text-white select-none overflow-hidden m-0 p-0">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

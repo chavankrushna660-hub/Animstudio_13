@@ -1,0 +1,48 @@
+{
+  "name": "Animstudio",
+  "short_name": "Animstudio",
+  "description": "Animstudio — Professional browser-based 2D & 3D animation studio with vector drawing, 3D extrusion, timeline keyframing, and PNG deep editing.",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0e1116",
+  "theme_color": "#DC2626",
+  "scope": "/",
+  "categories": ["graphics", "productivity", "utilities", "design", "multimedia"],
+  "icons": [
+    {
+      "src": "/favicon-48x48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Animation",
+      "short_name": "New Anim",
+      "description": "Create a new 2D/3D animation canvas",
+      "url": "/",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

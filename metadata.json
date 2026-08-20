@@ -1,0 +1,7 @@
+{
+  "name": "Animstudio",
+  "description": "Animstudio — Professional 2D & 3D Animation Studio with vector drawing, 3D extrusion, timeline keyframing, and PNG deep editing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
