@@ -1842,31 +1842,14 @@ export default function CanvasArea({
 
   const recenterCanvas = () => {
     try {
-      const safeW = Math.max(100, Number.isFinite(artboardW) && artboardW > 0 ? artboardW : 1400);
-      const safeH = Math.max(100, Number.isFinite(artboardH) && artboardH > 0 ? artboardH : 900);
-      const safeDimW = Math.max(100, Number.isFinite(dimensions.width) && dimensions.width > 0 ? dimensions.width : 1000);
-      const safeDimH = Math.max(100, Number.isFinite(dimensions.height) && dimensions.height > 0 ? dimensions.height : 700);
+      const safeDimW = Math.max(100, Number.isFinite(dimensions.width) && dimensions.width > 0 ? dimensions.width : 1200);
+      const safeDimH = Math.max(100, Number.isFinite(dimensions.height) && dimensions.height > 0 ? dimensions.height : 800);
 
-      const scaleX = (safeDimW - 48) / safeW;
-      const scaleY = (safeDimH - 48) / safeH;
-      const rawScale = Math.min(scaleX, scaleY);
-      const bestScale = Number.isFinite(rawScale) ? Math.min(2.0, Math.max(0.3, rawScale)) : 1.0;
-      const offsetX = Number.isFinite(safeDimW - safeW * bestScale) ? (safeDimW - safeW * bestScale) / 2 : 0;
-      const offsetY = Number.isFinite(safeDimH - safeH * bestScale) ? (safeDimH - safeH * bestScale) / 2 : 0;
-      
-      setZoomScale(prev => {
-        if (!Number.isFinite(prev) || Math.abs(prev - bestScale) < 0.001) {
-          return prev;
-        }
-        return bestScale;
-      });
-      
-      setZoomOffset(prev => {
-        if (prev && Number.isFinite(prev.x) && Number.isFinite(prev.y) && Math.abs(prev.x - offsetX) < 0.01 && Math.abs(prev.y - offsetY) < 0.01) {
-          return prev;
-        }
-        return { x: offsetX, y: offsetY };
-      });
+      // Keep canvas 100% full screen with 1.0 zoom scale and 0 offset
+      setZoomScale(1.0);
+      setZoomOffset({ x: 0, y: 0 });
+      setArtboardW(safeDimW);
+      setArtboardH(safeDimH);
     } catch (err) {
       console.error("Recenter canvas failed", err);
     }
@@ -2470,6 +2453,37 @@ export default function CanvasArea({
   // Zoom & Pan Canvas states (100x zoom capability)
   const [zoomScale, setZoomScale] = useState<number>(1);
   const [zoomOffset, setZoomOffset] = useState<Point>({ x: 0, y: 0 });
+  const [isSpacePressed, setIsSpacePressed] = useState<boolean>(false);
+  const isSpacePressedRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    const handleSpaceKeyDown = (e: KeyboardEvent) => {
+      const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (targetTag === 'input' || targetTag === 'textarea' || (e.target as HTMLElement)?.isContentEditable) {
+        return;
+      }
+      if (e.code === 'Space' || e.key === ' ') {
+        if (!isSpacePressedRef.current) {
+          isSpacePressedRef.current = true;
+          setIsSpacePressed(true);
+        }
+      }
+    };
+
+    const handleSpaceKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space' || e.key === ' ') {
+        isSpacePressedRef.current = false;
+        setIsSpacePressed(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleSpaceKeyDown);
+    window.addEventListener('keyup', handleSpaceKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleSpaceKeyDown);
+      window.removeEventListener('keyup', handleSpaceKeyUp);
+    };
+  }, []);
 
   // Touch screen multi-touch pinch gesture tracking refs
   const activePointersRef = useRef<{ [id: number]: Point }>({});
@@ -3025,7 +3039,8 @@ export default function CanvasArea({
     activePointersRef.current[e.pointerId] = { x: e.clientX, y: e.clientY };
     const pointerIds = Object.keys(activePointersRef.current);
     
-    if (activeTool === 'ZOM') {
+    // 0. Panning handlers: Space key, Middle mouse button (button === 1), Alt key, or ZOM tool
+    if (e.button === 1 || e.altKey || isSpacePressedRef.current || activeTool === 'ZOM' || (activeTool as string) === 'PAN') {
       if (pointerIds.length === 2) {
         const p1 = activePointersRef.current[Number(pointerIds[0])];
         const p2 = activePointersRef.current[Number(pointerIds[1])];
@@ -3040,7 +3055,7 @@ export default function CanvasArea({
         lastPinchScaleRef.current = zoomScale;
         
         setDragMode('zoom');
-      } else if (pointerIds.length === 1) {
+      } else {
         dragStartScreenRef.current = { x: e.clientX, y: e.clientY };
         dragStartOffsetRef.current = { ...zoomOffset };
         setDragMode('pan');
@@ -5245,9 +5260,11 @@ export default function CanvasArea({
         setInitialTransform({ ...clickedObj.transform });
         snapshotHierarchyTransforms(clickedObj.id, objects);
       } else {
-        // Clicking on empty canvas space cleanly unselects drawing
+        // Clicking on empty canvas space cleanly unselects drawing and initiates canvas dragging/panning
         setSelectedObjectId(null);
-        setDragMode('none');
+        dragStartScreenRef.current = { x: e.clientX, y: e.clientY };
+        dragStartOffsetRef.current = { ...zoomOffset };
+        setDragMode('pan');
       }
       return;
     }
@@ -8426,35 +8443,39 @@ export default function CanvasArea({
   };
 
   const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    // Only zoom on scroll wheel if the Zoom & Pan tool is active
-    if (activeTool !== 'ZOM') return;
-    
     e.preventDefault();
-    
-    // Zoom amount depending on deltaY
-    const zoomFactor = 1.08;
-    const isZoomIn = e.deltaY < 0;
-    const currentScale = zoomScale;
-    let nextScale = isZoomIn ? currentScale * zoomFactor : currentScale / zoomFactor;
-    
-    // Clamp scale to limits (0.15 to 10.0)
-    nextScale = Math.min(10.0, Math.max(0.15, nextScale));
-    
-    const canvas = frontCanvasRef.current;
-    if (canvas) {
-      const rect = canvas.getBoundingClientRect();
-      const appScale = (window as any).__appScale || 1;
-      const cursorX = (e.clientX - rect.left) / appScale;
-      const cursorY = (e.clientY - rect.top) / appScale;
+    if (e.ctrlKey || e.metaKey || activeTool === 'ZOM') {
+      // Zoom amount depending on deltaY
+      const zoomFactor = 1.08;
+      const isZoomIn = e.deltaY < 0;
+      const currentScale = zoomScale;
+      let nextScale = isZoomIn ? currentScale * zoomFactor : currentScale / zoomFactor;
       
-      const worldX = (cursorX - zoomOffset.x) / currentScale;
-      const worldY = (cursorY - zoomOffset.y) / currentScale;
+      // Clamp scale to limits (0.15 to 10.0)
+      nextScale = Math.min(10.0, Math.max(0.15, nextScale));
       
-      const nextOffsetX = cursorX - worldX * nextScale;
-      const nextOffsetY = cursorY - worldY * nextScale;
-      
-      setZoomScale(nextScale);
-      setZoomOffset({ x: nextOffsetX, y: nextOffsetY });
+      const canvas = frontCanvasRef.current;
+      if (canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const appScale = (window as any).__appScale || 1;
+        const cursorX = (e.clientX - rect.left) / appScale;
+        const cursorY = (e.clientY - rect.top) / appScale;
+        
+        const worldX = (cursorX - zoomOffset.x) / currentScale;
+        const worldY = (cursorY - zoomOffset.y) / currentScale;
+        
+        const nextOffsetX = cursorX - worldX * nextScale;
+        const nextOffsetY = cursorY - worldY * nextScale;
+        
+        setZoomScale(nextScale);
+        setZoomOffset({ x: nextOffsetX, y: nextOffsetY });
+      }
+    } else {
+      // Two-finger trackpad or wheel pan
+      setZoomOffset(prev => ({
+        x: prev.x - e.deltaX,
+        y: prev.y - e.deltaY
+      }));
     }
   };
 
@@ -8487,8 +8508,8 @@ export default function CanvasArea({
       const ctx = frontCanvas.getContext('2d');
       if (!ctx) return;
 
-    // Clear and Redraw physical viewport with slate workspace background (pasteboard)
-    ctx.fillStyle = '#17171a';
+    // Clear and Redraw physical viewport with pure white canvas sheet (NO black surround pasteboard in any condition!)
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, frontCanvas.width, frontCanvas.height);
 
     // Apply viewport zoom and pan offset transformation
@@ -8496,42 +8517,14 @@ export default function CanvasArea({
     ctx.translate(zoomOffset.x, zoomOffset.y);
     ctx.scale(zoomScale, zoomScale);
 
-    // DRAW ARTBOARD (The active drawing and vector canvas sheet)
-    const artboardX = 0;
-    const artboardY = 0;
-
-    // Fill white page area representing the active animation stage
+    // Fill seamless infinite white canvas space
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(artboardX, artboardY, artboardW, artboardH);
+    ctx.fillRect(-50000, -50000, 100000, 100000);
 
-    if (!isRecording && !isPlaying) {
-      // Draw active artboard boundaries (Border lines showing canvas start/end)
-      ctx.strokeStyle = '#f59e0b'; // Prominent Amber outline indicating the exact canvas boundary
-      ctx.lineWidth = 3;
-      ctx.strokeRect(artboardX, artboardY, artboardW, artboardH);
-
-
-
-      // Add visual crosshair corner marks to assist precision drawing alignment
-      ctx.strokeStyle = '#f59e0b';
-      ctx.lineWidth = 1.5;
-      // Top-Left Cross
-      ctx.beginPath();
-      ctx.moveTo(artboardX - 12, artboardY); ctx.lineTo(artboardX + 24, artboardY);
-      ctx.moveTo(artboardX, artboardY - 12); ctx.lineTo(artboardX, artboardY + 24);
-      ctx.stroke();
-
-      // Bottom-Right Cross
-      ctx.beginPath();
-      ctx.moveTo(artboardX + artboardW - 24, artboardY + artboardH); ctx.lineTo(artboardX + artboardW + 12, artboardY + artboardH);
-      ctx.moveTo(artboardX + artboardW, artboardY + artboardH - 24); ctx.lineTo(artboardX + artboardW, artboardY + artboardH + 12);
-      ctx.stroke();
-    }
-
-    // STRICT ARTBOARD CLIPPING - Prevents any artwork, deform, or other elements from leaking outside the canvas boundaries
+    // Full workspace clipping path allowing unconstrained drawing
     ctx.save();
     ctx.beginPath();
-    ctx.rect(artboardX, artboardY, artboardW, artboardH);
+    ctx.rect(-50000, -50000, 100000, 100000);
     ctx.clip();
 
     // Pre-build layer maps for O(1) lookup during sorting and rendering
@@ -11775,13 +11768,13 @@ export default function CanvasArea({
   };
 
   return (
-    <div ref={containerRef} className="flex-1 bg-white relative overflow-hidden select-none">
+    <div id="anim-canvas-container" ref={containerRef} className="flex-1 bg-white relative overflow-hidden select-none">
       {/* Double canvas layout for background / overlays optimization */}
       <canvas
         ref={backCanvasRef}
         width={dimensions.width}
         height={dimensions.height}
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none bg-white"
       />
       <canvas
         ref={frontCanvasRef}
@@ -11794,8 +11787,8 @@ export default function CanvasArea({
         onPointerCancel={handlePointerUp}
         onPointerLeave={handlePointerUp}
         onWheel={handleWheel}
-        className={`absolute inset-0 touch-none ${
-          activeTool === 'ZOM' 
+        className={`absolute inset-0 touch-none bg-white ${
+          isSpacePressed || dragMode === 'pan' || activeTool === 'ZOM' || (activeTool as string) === 'PAN'
             ? (dragMode === 'pan' ? 'cursor-grabbing' : 'cursor-grab') 
             : 'cursor-crosshair'
         }`}

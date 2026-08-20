@@ -771,15 +771,15 @@ export default function App() {
   // Canvas Size States
   const [artboardW, setArtboardW] = useState<number>(() => {
     if (typeof window !== 'undefined') {
-      return Math.max(800, window.innerWidth - 64);
+      return window.innerWidth;
     }
-    return 1400;
+    return 1920;
   });
   const [artboardH, setArtboardH] = useState<number>(() => {
     if (typeof window !== 'undefined') {
-      return Math.max(500, window.innerHeight - 260);
+      return window.innerHeight;
     }
-    return 900;
+    return 1080;
   });
   const [showCanvasSizePanel, setShowCanvasSizePanel] = useState<boolean>(false);
 

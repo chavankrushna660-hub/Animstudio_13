@@ -99,13 +99,45 @@
 }
 
 /* Light surfaces used by legacy light styling */
-#anim-root [class*="bg-white"],
+#anim-root [class*="bg-white"]:not(#anim-canvas-container):not(#anim-canvas-container canvas):not(#canvas-zoom-hud):not(#canvas-zoom-hud *),
 #anim-root [class*="bg-neutral-100"],
 #anim-root [class*="bg-slate-100"],
 #anim-root [class*="bg-neutral-200"],
 #anim-root [class*="bg-slate-200"] {
   background-color: var(--s2) !important;
   color: var(--txt) !important;
+}
+
+#anim-canvas-container,
+#anim-canvas-container canvas,
+#anim-root #anim-canvas-container,
+#anim-root #anim-canvas-container canvas {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+#canvas-zoom-hud,
+#anim-root #canvas-zoom-hud {
+  background-color: #ffffff !important;
+  color: #1f2937 !important;
+  border-color: #e5e7eb !important;
+}
+#canvas-zoom-hud button,
+#anim-root #canvas-zoom-hud button {
+  color: #4b5563 !important;
+}
+#canvas-zoom-hud button:hover,
+#anim-root #canvas-zoom-hud button:hover {
+  background-color: #f3f4f6 !important;
+  color: #111827 !important;
+}
+#canvas-zoom-hud span,
+#anim-root #canvas-zoom-hud span {
+  color: #374151 !important;
+}
+#canvas-zoom-hud svg,
+#anim-root #canvas-zoom-hud svg {
+  color: #4b5563 !important;
 }
 
 /* ---------- 2. Primary actions (former gradients / solid brand fills) ---------- */
