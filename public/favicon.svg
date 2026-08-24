@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E53935" />
+      <stop offset="45%" stop-color="#D32F2F" />
+      <stop offset="85%" stop-color="#C62828" />
+      <stop offset="100%" stop-color="#B71C1C" />
+    </linearGradient>
+
+    <radialGradient id="topLight" cx="45%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#FF5252" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#7F0000" stop-opacity="0.4" />
+    </radialGradient>
+
+    <filter id="shadowA" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#4A0505" flood-opacity="0.65" />
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#300000" flood-opacity="0.85" />
+    </filter>
+
+    <linearGradient id="whiteLetterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="70%" stop-color="#FBFBFC" />
+      <stop offset="100%" stop-color="#ECEEF2" />
+    </linearGradient>
+
+    <linearGradient id="letterStrokeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFEAEA" />
+      <stop offset="100%" stop-color="#9E1515" />
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="96" fill="url(#redGrad)" />
+  <rect width="512" height="512" rx="96" fill="url(#topLight)" />
+  <rect x="4" y="4" width="504" height="504" rx="92" fill="none" stroke="#FF7B7B" stroke-width="2" stroke-opacity="0.35" />
+
+  <g filter="url(#shadowA)">
+    <path
+      fill="url(#whiteLetterGrad)"
+      stroke="url(#letterStrokeGrad)"
+      stroke-width="5"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      fill-rule="evenodd"
+      d="
+        M 194 92
+        C 194 80, 206 72, 222 72
+        L 290 72
+        C 306 72, 318 80, 318 92
+        L 426 390
+        C 434 410, 420 426, 396 426
+        L 332 426
+        C 316 426, 304 414, 298 398
+        L 278 344
+        C 268 350, 244 350, 234 344
+        L 214 398
+        C 208 414, 196 426, 180 426
+        L 116 426
+        C 92 426, 78 410, 86 390
+        L 194 92 Z
+
+        M 236 288
+        L 276 288
+        C 278 276, 262 152, 256 142
+        C 250 152, 234 276, 236 288 Z
+      "
+    />
+  </g>
+</svg>
