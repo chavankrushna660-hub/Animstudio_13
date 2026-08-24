@@ -1,6 +1,6 @@
 {
-  "name": "AnimStudio 13 - Rule-Based 3D Stroke & Animation Studio",
-  "description": "Powerful 2D and 3D animation studio featuring zero-vibration Mesh Puppet Wrap (MWP) with size capture extrusion, real-time point-bounded transforms, draggable canvas HUD, 3D stroke memory, and timeline keyframing.",
+  "name": "Animstudio",
+  "description": "Powerful 2D and 3D animation web app with vector rigging, bone animation, 3D stroke memory, liquify mesh deformer, smart transforms, and timeline keyframing.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
