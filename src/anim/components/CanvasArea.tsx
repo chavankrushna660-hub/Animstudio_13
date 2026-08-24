@@ -3354,6 +3354,56 @@ export default function CanvasArea({
       }
     }
 
+    // 🌟 Universal Transform Handles Check across ALL Active Tools (Rotate, Scale, Pivot)
+    if (selectedObjectId && objects[selectedObjectId]) {
+      const obj = objects[selectedObjectId];
+      const effLayerId = obj.layerId || (layers && layers[0] ? layers[0].id : 'layer_1');
+      const targetLayer = layers ? layers.find(l => l.id === effLayerId) : null;
+      const isInteractable = !obj.isHidden && !obj.isLocked && (!targetLayer || (!targetLayer.locked && targetLayer.visible !== false && targetLayer.opacity !== 0 && !(targetLayer as any).isHidden));
+
+      if (isInteractable) {
+        // 1. Check if clicking on bounding box rotate/scale/pivot handles
+        const handles = getHandles(obj);
+        const hitHandle = handles.find(h => {
+          const threshold = h.type === 'rotate' ? (18 / zoomScale) : (14 / zoomScale);
+          return distance(coords, { x: h.worldX, y: h.worldY }) <= threshold;
+        });
+
+        if (hitHandle) {
+          if (hitHandle.type === 'scale') {
+            setDragMode('scale');
+            setActiveHandleIndex(hitHandle.index);
+          } else if (hitHandle.type === 'rotate') {
+            setDragMode('rotate');
+            setActiveHandleIndex(8);
+          } else if (hitHandle.type === 'pivot') {
+            setDragMode('pivot');
+            setActiveHandleIndex(9);
+          }
+          dragStartPointRef.current = coords;
+          setDragStartPoint(coords);
+          initialTransformRef.current = { ...obj.transform };
+          setInitialTransform({ ...obj.transform });
+          snapshotHierarchyTransforms(obj.id, objects);
+          return;
+        }
+
+        // 2. Check if clicking on selected object body to drag/move it
+        if (activeTool === 'SEL' || activeTool === 'HND' || activeTool === 'DIRECT_SELECT' || activeTool === '360') {
+          const hitObj = performHitTest(coords);
+          if (hitObj && hitObj.id === selectedObjectId) {
+            setDragMode('move');
+            dragStartPointRef.current = coords;
+            setDragStartPoint(coords);
+            initialTransformRef.current = { ...obj.transform };
+            setInitialTransform({ ...obj.transform });
+            snapshotHierarchyTransforms(obj.id, objects);
+            return;
+          }
+        }
+      }
+    }
+
     // Check if we clicked on a Lasso Mesh Control Point!
     if (selectedObjectId && objects[selectedObjectId]) {
       const obj = objects[selectedObjectId];
@@ -4077,52 +4127,66 @@ export default function CanvasArea({
         }
         if (handled3D) return;
 
-        // 2. High-Accuracy Enclosed Partition Flood Fill (Single Stroke or Multiple Overlapping Strokes / Clouds)
-        const targetLayerId = activeLayerId || (layers && layers[0] ? layers[0].id : 'layer-1');
-        const smartFillObj = performSmartFloodFill(coords, objects, targetLayerId, fillToolColor, 18);
-        if (smartFillObj) {
-          setObjects(prev => ({
-            ...prev,
-            [smartFillObj.id]: smartFillObj
-          }));
-          setSelectedObjectId(smartFillObj.id);
-          historyPush();
-          return;
-        }
-
-        // 3. If not an enclosed stroke region, check if user clicked on an existing closed geometric shape
-        let bestShapeCandidate: { obj: VectorObject; area: number } | null = null;
+        // 2. Instant Direct Drawing Click / Touch Detection
+        let directHitDrawing: { obj: VectorObject; subIdx?: number } | null = null;
         for (let i = visibleObjects.length - 1; i >= 0; i--) {
           const obj = visibleObjects[i];
           const pivot = obj.pivots?.[0] || { localX: 0, localY: 0 };
-          if (obj.type === 'shape' && obj.points && obj.points.length >= 3) {
-            const worldPts = obj.points.map(p => localToWorld(p, obj.transform, pivot));
+          const subPaths = (obj.subPaths && obj.subPaths.length > 0)
+            ? obj.subPaths
+            : (obj.points && obj.points.length >= 3 ? [obj.points] : []);
+
+          for (let sIdx = 0; sIdx < subPaths.length; sIdx++) {
+            const pts = subPaths[sIdx];
+            if (pts.length < 3) continue;
+            const worldPts = pts.map(p => localToWorld(p, obj.transform, pivot));
             if (isPointInPolygon(coords, worldPts)) {
-              const area = getPolygonArea(worldPts);
-              if (!bestShapeCandidate || area < bestShapeCandidate.area) {
-                bestShapeCandidate = { obj, area };
-              }
+              directHitDrawing = { obj, subIdx: sIdx };
+              break;
             }
           }
+          if (directHitDrawing) break;
         }
 
-        if (bestShapeCandidate) {
-          const targetObj = bestShapeCandidate.obj;
+        if (directHitDrawing) {
+          const targetObj = directHitDrawing.obj;
           const color = fillToolColor;
           setSelectedObjectId(targetObj.id);
-          setObjects(prev => ({
-            ...prev,
-            [targetObj.id]: {
-              ...prev[targetObj.id],
-              fillColor: color,
-              subPathFills: { 0: color }
+          setObjects(prev => {
+            const cur = prev[targetObj.id] || targetObj;
+            const updatedSubFills = { ...(cur.subPathFills || {}) };
+            if (directHitDrawing?.subIdx !== undefined) {
+              updatedSubFills[directHitDrawing.subIdx] = color;
             }
-          }));
+            return {
+              ...prev,
+              [targetObj.id]: {
+                ...cur,
+                fillColor: color,
+                autoFillInnerRegion: true,
+                subPathFills: updatedSubFills
+              }
+            };
+          });
           historyPush();
           return;
         }
 
-        // 4. If clicked directly on a stroke line edge, tint that stroke's color
+        // 3. High-Accuracy Enclosed Partition Flood Fill (Embeds directly inside the target drawing object)
+        const targetLayerId = activeLayerId || (layers && layers[0] ? layers[0].id : 'layer-1');
+        const smartFillResult = performSmartFloodFill(coords, objects, targetLayerId, fillToolColor, 18);
+        if (smartFillResult) {
+          const { targetObjectId, updatedObject } = smartFillResult;
+          setObjects(prev => ({
+            ...prev,
+            [targetObjectId]: updatedObject
+          }));
+          setSelectedObjectId(targetObjectId);
+          historyPush();
+          return;
+        }
+
+        // 4. If clicked directly on or near a drawing's stroke, fill that drawing's interior while keeping stroke intact
         const hitEdgeObj = performHitTest(coords);
         if (hitEdgeObj) {
           setSelectedObjectId(hitEdgeObj.id);
@@ -4133,7 +4197,8 @@ export default function CanvasArea({
               ...prev,
               [hitEdgeObj.id]: {
                 ...curObj,
-                strokeColor: color
+                fillColor: color,
+                autoFillInnerRegion: true
               }
             };
           });
@@ -10054,37 +10119,30 @@ export default function CanvasArea({
         if (drawObj.lassoFills && drawObj.lassoFills.length > 0) {
           drawObj.lassoFills.forEach(fill => {
             ctx.save();
-            drawAllPaths(true);
-            if (drawObj.autoFillGaps || drawObj.fillGaps || (drawObj.gapFillExpansion && drawObj.gapFillExpansion > 0)) {
-              const exp = drawObj.gapFillExpansion ?? 4;
-              ctx.strokeStyle = fill.color;
-              ctx.lineWidth = exp * 2;
-              ctx.lineJoin = 'round';
-              ctx.lineCap = 'round';
-              ctx.stroke();
-            }
-            ctx.clip('evenodd');
-            
-            ctx.beginPath();
-            const localPivot = drawObj.pivots[0] || { localX: 0, localY: 0 };
+            const localPivot = drawObj.pivots?.[0] || { localX: 0, localY: 0 };
             const worldLassoPoints = getWorldLassoPointsForObject(fill, drawObj, localPivot);
-            if (worldLassoPoints.length > 0) {
-              ctx.moveTo(worldLassoPoints[0].x, worldLassoPoints[0].y);
-              for (let i = 1; i < worldLassoPoints.length; i++) {
-                ctx.lineTo(worldLassoPoints[i].x, worldLassoPoints[i].y);
+            const ptsToDraw = (worldLassoPoints && worldLassoPoints.length >= 3)
+              ? worldLassoPoints
+              : (fill.localLassoPoints ? fill.localLassoPoints.map(p => localToWorld(p, drawObj.transform, localPivot)) : []);
+
+            if (ptsToDraw.length >= 3) {
+              ctx.beginPath();
+              ctx.moveTo(ptsToDraw[0].x, ptsToDraw[0].y);
+              for (let i = 1; i < ptsToDraw.length; i++) {
+                ctx.lineTo(ptsToDraw[i].x, ptsToDraw[i].y);
               }
               ctx.closePath();
               ctx.fillStyle = fill.color;
-              ctx.fill();
-            }
+              ctx.fill('evenodd');
 
-            const fillExp = drawObj.gapFillExpansion ?? (drawObj.autoFillGaps || drawObj.fillGaps ? 4 : 2);
-            if (fillExp > 0) {
-              ctx.strokeStyle = fill.color;
-              ctx.lineWidth = fillExp * 2;
-              ctx.lineJoin = 'round';
-              ctx.lineCap = 'round';
-              ctx.stroke();
+              const fillExp = drawObj.gapFillExpansion ?? (drawObj.autoFillGaps || drawObj.fillGaps ? 4 : 2);
+              if (fillExp > 0) {
+                ctx.strokeStyle = fill.color;
+                ctx.lineWidth = fillExp * 2;
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.stroke();
+              }
             }
             ctx.restore();
           });
@@ -10312,15 +10370,14 @@ export default function CanvasArea({
     const isSelLayerLocked = selLayer?.locked === true;
     const isSelLayerHidden = selLayer?.visible === false || selLayer?.opacity === 0 || (selLayer as any)?.isHidden;
 
-    // 1. Draw select overlay bounding boxes & 10+ handles (ONLY when SEL, PVT, DIRECT_SELECT, or 360 tool is active)
+    // 1. Draw select overlay bounding boxes & 10+ handles (Render across ALL active tools whenever an object is selected)
     if (
       effectiveSelectedObjectId &&
       objects[effectiveSelectedObjectId] &&
       !isSelLayerLocked &&
       !isSelLayerHidden &&
       !objects[effectiveSelectedObjectId].isLocked &&
-      !objects[effectiveSelectedObjectId].isHidden &&
-      (activeTool === 'SEL' || activeTool === 'PVT' || activeTool === 'DIRECT_SELECT' || activeTool === '360')
+      !objects[effectiveSelectedObjectId].isHidden
     ) {
       const rawObj = objects[effectiveSelectedObjectId];
       const obj = resolve360Object(rawObj, objects);

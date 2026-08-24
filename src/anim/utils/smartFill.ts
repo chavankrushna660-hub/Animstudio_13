@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { Point, VectorObject } from '../types';
-import { localToWorld } from './math';
+import { localToWorld, worldToLocal, isPointInPolygon } from './math';
 
 export interface ScannedShapeRegion {
   id: string;
@@ -709,12 +709,17 @@ function tryFloodFillWithGap(
   return traceMaskContour(mask, gridW, gridH, sampleMinX, sampleMinY, 1 / renderScale);
 }
 
+export interface SmartFillResult {
+  targetObjectId: string;
+  updatedObject: VectorObject;
+}
+
 /**
  * HIGH-ACCURACY ENCLOSED REGION COLORING ENGINE:
  * - Accurately finds and fills the exact area bounded by overlapping strokes and multiple different drawings.
  * - Bridges unclosed gaps near 5px - 20px (endpoints wanting to close, T-junctions, near-intersecting strokes).
  * - Generates high-quality, silky-smooth vector contours with curvature smoothing and zero jagged pixelation.
- * - Under-tucks the fill shape slightly under the stroke boundary for seamless, gap-free rendering.
+ * - Embeds the fill directly inside the target drawing object in its local coordinate space so it moves/rotates/scales together and never detaches!
  */
 export function performSmartFloodFill(
   clickCoords: Point,
@@ -722,7 +727,7 @@ export function performSmartFloodFill(
   activeLayerId: string,
   fillColor: string,
   initialGapClosurePx: number = 8
-): VectorObject | null {
+): SmartFillResult | null {
   try {
     // Gather all visible objects (supports multiple drawings across canvas / layers)
     const layerObjects = Object.values(objects).filter(
@@ -802,32 +807,74 @@ export function performSmartFloodFill(
 
     if (!contour || contour.length < 3) return null;
 
-    // Determine lowest zIndex among surrounding objects so the fill sits neatly underneath strokes
-    const minZIndex = Math.min(...layerObjects.map(o => o.zIndex ?? 0), 0);
+    // Find the drawing whose strokes are closest to or enclose the click and contour
+    let bestDrawingId: string | null = null;
+    let minDistance = Infinity;
 
-    const newId = `fill_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    const centerP = contour[0];
+    for (const obj of layerObjects) {
+      const pivot = obj.pivots?.[0] || { localX: 0, localY: 0 };
+      const subPaths = (obj.subPaths && obj.subPaths.length > 0)
+        ? obj.subPaths
+        : (obj.points && obj.points.length > 0 ? [obj.points] : []);
 
-    const fillObj: VectorObject = {
-      id: newId,
-      name: `ColorFill_${Object.keys(objects).length + 1}`,
-      type: 'shape',
-      points: contour,
-      strokeColor: 'transparent',
-      strokeWidth: 0,
+      let isInside = false;
+      let objMinDist = Infinity;
+
+      for (const pts of subPaths) {
+        if (pts.length < 2) continue;
+        const worldPts = pts.map(p => localToWorld(p, obj.transform, pivot));
+        if (worldPts.length >= 3 && isPointInPolygon(clickCoords, worldPts)) {
+          isInside = true;
+          objMinDist = 0;
+          break;
+        }
+        for (let i = 0; i < worldPts.length; i++) {
+          const d = Math.hypot(worldPts[i].x - clickCoords.x, worldPts[i].y - clickCoords.y);
+          if (d < objMinDist) objMinDist = d;
+        }
+      }
+
+      if (isInside) {
+        bestDrawingId = obj.id;
+        break;
+      }
+
+      if (objMinDist < minDistance) {
+        minDistance = objMinDist;
+        bestDrawingId = obj.id;
+      }
+    }
+
+    if (!bestDrawingId || !objects[bestDrawingId]) {
+      bestDrawingId = layerObjects[layerObjects.length - 1]?.id;
+    }
+
+    if (!bestDrawingId || !objects[bestDrawingId]) return null;
+
+    const targetObj = objects[bestDrawingId];
+    const pivot = targetObj.pivots?.[0] || { localX: 0, localY: 0 };
+    const localContour = contour.map(wp => worldToLocal(wp, targetObj.transform, pivot));
+
+    // Embedded fill inside the target object
+    const existingLassoFills = targetObj.lassoFills || [];
+    const localClick = worldToLocal(clickCoords, targetObj.transform, pivot);
+    const filteredLassoFills = existingLassoFills.filter(f => !isPointInPolygon(localClick, f.localLassoPoints));
+
+    const updatedObject: VectorObject = {
+      ...targetObj,
       fillColor: fillColor,
-      opacity: 1,
-      zIndex: minZIndex - 1,
-      transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 },
-      pivots: [{ id: `pvt_${Date.now()}`, name: 'Pivot_1', localX: centerP.x, localY: centerP.y, locked: false }],
-      parentId: null,
-      childrenIds: [],
-      layerId: activeLayerId,
-      isLocked: false,
-      isHidden: false,
+      autoFillInnerRegion: true,
+      gapFillExpansion: 4,
+      lassoFills: [
+        ...filteredLassoFills,
+        { localLassoPoints: localContour, color: fillColor }
+      ]
     };
 
-    return fillObj;
+    return {
+      targetObjectId: targetObj.id,
+      updatedObject
+    };
   } catch (e) {
     console.error('performSmartFloodFill error:', e);
     return null;
